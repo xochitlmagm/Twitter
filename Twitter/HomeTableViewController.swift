@@ -31,8 +31,9 @@ class HomeTableViewController: UITableViewController {
     
     @objc func loadTweet(){
         
+        numberOfTweet = 20
         let myUrl = "https://api.twitter.com/1.1/statuses/home_timeline.json"
-        let myParams = ["count": 30]
+        let myParams = ["count": numberOfTweet]
         TwitterAPICaller.client?.getDictionariesRequest(url: myUrl, parameters: myParams, success: { (tweets: [NSDictionary]) in
             
             self.tweetArray.removeAll()
@@ -43,9 +44,51 @@ class HomeTableViewController: UITableViewController {
             self.tableView.reloadData()
             self.myRefreshControl.endRefreshing()
         }, failure: {(Error) in
-            print("Retrieving tweets was a failure")
+            print("Retrieving tweets was a failure!")
         })
     }
+    
+    
+    
+    func loadMoreTweets(){
+        
+        let myUrl = "https://api.twitter.com/1.1/statuses/home_timeline.json"
+        
+        numberOfTweet = numberOfTweet + 20
+        
+        let myParams = ["count": numberOfTweet]
+        
+        
+        TwitterAPICaller.client?.getDictionariesRequest(url: myUrl, parameters: myParams, success: { (tweets: [NSDictionary]) in
+            
+            self.tweetArray.removeAll()
+            for tweet in tweets {
+                self.tweetArray.append(tweet)
+            }
+            
+            self.tableView.reloadData()
+            // self.myRefreshControl.endRefreshing() doesnt hurt if i leave it her
+                //not necessary
+        }, failure: {(Error) in
+            print("Retrieving tweets was a failure!")
+        })
+    }
+    
+    
+    override func tableView(_ tableView: UITableView, willDisplay vell: UITableViewCell, forRowAt indexPath: IndexPath){
+        
+        if indexPath.row + 1 == tweetArray.count {
+            loadMoreTweets()
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
     @IBAction func onLogout(_ sender: Any) {
         TwitterAPICaller.client?.logout()
         self.dismiss(animated: true, completion: nil)
